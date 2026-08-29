@@ -1,0 +1,188 @@
+============================================================
+PLUNDER BENCHMARK REPORT
+============================================================
+
+1. OBJECTIVE
+------------------------------------------------------------
+
+Plunder was evaluated on a controlled pentesting dataset
+containing configuration and environment files with known
+cleartext credentials.
+
+The objective was to measure Plunder's ability to identify
+known leaked passwords while minimizing false positives.
+
+
+2. BENCHMARK DATASET
+------------------------------------------------------------
+
+Dataset root:
+    /benchmarking
+
+The benchmark contains the following intentionally planted
+cleartext credentials:
+
+    postgres/pg.conf
+        pgSuperSecret!
+        Repl123!
+
+    envs/.env
+        SuperEnvPass123!
+        jwtsecretkey123
+        tok_9x8a7s6d5f
+
+    apache/app.conf
+        Admin123!
+        MySecretToken123!
+        sk_test_51H8kLp9Z
+
+    mysql/my.cnf
+        supersecret123
+        R3pl!c@tionKey
+        b@ckupP@ssw0rd!
+        MyApp123!
+
+    docker/docker-compose.yml
+        root123!
+        MyDBPass!
+        
+Total known passwords:
+    14
+
+
+3. PLUNDER CONFIGURATION
+------------------------------------------------------------
+
+Entropy metric:
+    [Negative Log Likelihood]
+
+Outlier detection:
+    DBSCAN
+
+DBSCAN parameters:
+    eps = [1.5]
+    min_samples = [7]
+
+Minimum candidate word length:
+    4 characters
+
+REGEX / HEURISTIC FILTERING:
+    Candidates are restricted to 6–32 characters and must contain only
+    alphanumeric characters and !@#$%^&*?.
+
+    Candidates must contain:
+    (letters + digits) OR (letters + symbols)
+
+    Tokens beginning with a symbol are rejected. Scanning is also limited
+    to selected configuration, source-code, credential, and deployment
+    file types.
+
+Maximum file size:
+    [200 KB]
+
+
+4. BENCHMARK RESULTS
+------------------------------------------------------------
+
+Total known passwords:
+    14
+
+True positives (TP):
+    [8]
+
+False negatives (FN):
+    [6]
+
+False positives (FP):
+    [16]
+
+True negatives (TN):
+    [29475]
+
+Total detected candidates:
+    [8]
+
+Detection rate / Recall:
+    [57.14] %
+
+Precision:
+    [33.33] %
+
+Specificity:
+    [99.95] %
+
+F1-score:
+    [42.11] %
+
+Runtime:
+    [114.52] seconds
+
+
+5. TRUFFLEHOG COMPARISON
+------------------------------------------------------------
+
+The same benchmark dataset was scanned using TruffleHog
+under v3.97.0.
+
+                         Plunder             TruffleHog
+------------------------------------------------------------
+True Positives              [8]                 [0]
+False Positives             [16]                [38]
+False Negatives             [6]                 [14]
+Precision                  [33.33] %            [0.00] %
+Recall / Sensitivity       [57.14] %            [0.00] %
+Specificity                [99.95] %            [99.96] %
+F1-score                   [42.11] %            [0.00] %
+Runtime                    [114.52] s           [42.88] s
+
+
+6. INTERPRETATION
+------------------------------------------------------------
+
+Plunder detected [8] of the 14 known cleartext
+credentials, corresponding to a recall of [57.14]%.
+
+TruffleHog detected [0] of the 14 known credentials,
+with a recall of [0.00]% and precision of [0.00]%.
+
+Compared with TruffleHog, Plunder showed [57.14]
+higher recall and [33.33] higher precision.
+
+Plunder's main advantage was ability to
+identify previously unknown high-information strings with
+no dependence on application and vendor specific regular
+expression patterns.
+
+
+7. LIMITATIONS
+------------------------------------------------------------
+
+- The benchmark dataset is relatively small.
+- The passwords were intentionally planted and therefore do
+  not represent the full diversity of real-world credentials.
+- Results depend on the selected entropy and DBSCAN parameters.
+- The benchmark does not measure detection of every type of
+  secret supported by established secret-scanning tools.
+- Additional evaluation on larger real-world or publicly
+  available datasets is required.
+
+
+8. REPRODUCIBILITY
+------------------------------------------------------------
+
+All benchmark files, ground-truth credentials, scanner
+configuration, benchmark scripts, and results are included
+in the project repository.
+
+Plunder version:
+    [v.1.0.0]
+
+TruffleHog version:
+    [v3.97.0]
+
+Operating system:
+    Kali Linux [2025.4]
+
+Date of benchmark:
+    [08/26/2026]
+============================================================
